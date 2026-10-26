@@ -2,7 +2,6 @@
 #include <random>
 #include <iomanip>
 
-
 // ПОТОК ПИСАТЕЛЯ
 DWORD WINAPI WriterThreadProc(LPVOID lpParam) {
     auto* args = static_cast<ThreadArgs*>(lpParam);
@@ -84,4 +83,67 @@ DWORD WINAPI ReaderThreadProc(LPVOID lpParam) {
     }
 
     return 0;
+}
+
+void RunExperiment(ExperimentConfig config) {
+    SharedArray sharedArray;
+    sharedArray.Initialize();
+
+    int totalThreads = config.readersCount + config.writersCount;
+    std::vector<HANDLE> hThreads(totalThreads);
+    std::vector<ThreadArgs> threadArgs(totalThreads);
+
+    PrecisionTimer totalTimer;
+    totalTimer.Start();
+
+    int threadIdx = 0;
+
+    // создаем потоки читателей
+    for (int i = 0; i < config.readersCount; ++i) {
+        threadArgs[threadIdx] = { i + 1, &sharedArray, config, {} };
+        hThreads[threadIdx] = CreateThread(NULL, 0, ReaderThreadProc, &threadArgs[threadIdx], 0, NULL);
+        threadIdx++;
+    }
+
+    // создаем потоки писателей
+    for (int i = 0; i < config.writersCount; ++i) {
+        threadArgs[threadIdx] = { i + 1, &sharedArray, config, {} };
+        hThreads[threadIdx] = CreateThread(NULL, 0, WriterThreadProc, &threadArgs[threadIdx], 0, NULL);
+        threadIdx++;
+    }
+
+    // завершения всех потоков
+    WaitForMultipleObjects(totalThreads, hThreads.data(), TRUE, INFINITE);
+    totalTimer.Stop();
+
+    for (HANDLE h : hThreads) {
+        CloseHandle(h);
+    }
+
+    // сбор статистики читателей
+    double sumWaitTimeMs = 0.0;
+    long long totalReads = 0;
+    int totalViolations = 0;
+
+    for (int i = 0; i < config.readersCount; ++i) {
+        sumWaitTimeMs += threadArgs[i].stats.totalWaitTimeMs;
+        totalReads += threadArgs[i].stats.totalReadOps;
+        totalViolations += threadArgs[i].stats.invariantViolations;
+    }
+
+    // среднее время ожидания одного читателя
+    double avgWaitMicroseconds = (sumWaitTimeMs * 1000.0) / totalReads;
+
+    // пропускная способность
+    long long totalOperations = (config.writersCount * OPERATIONS_COUNT) + (config.readersCount * OPERATIONS_COUNT);
+    double throughputOpsPerSec = static_cast<double>(totalOperations) / (totalTimer.GetMilliseconds() / 1000.0);
+
+    std::string stratName = (config.strategy == LOCK_GROUP) ? "ГРУППОВАЯ (Lock Group)" : "ПООДИНОЧНАЯ (Lock Each)";
+    std::cout << "| " << std::left << std::setw(23) << stratName
+              << "| " << std::setw(6) << config.groupSize
+              << "| " << std::setw(15) << std::fixed << std::setprecision(2) << totalTimer.GetMilliseconds()
+              << "| " << std::setw(17) << std::fixed << std::setprecision(2) << avgWaitMicroseconds
+              << "| " << std::setw(17) << static_cast<long long>(throughputOpsPerSec)
+              << "| " << std::setw(12) << (totalViolations == 0 ? "0 (OK)" : "СБОЙ!")
+              << " |\n";
 }
