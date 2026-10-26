@@ -59,9 +59,9 @@ DWORD WINAPI ReaderThreadProc(LPVOID lpParam) {
     PrecisionTimer waitTimer;
 
     for (int i = 0; i < OPERATIONS_COUNT; ++i) {
-        // засекаем время: сколько читатель ждет освобождения замка в очереди!
+        // засекаем время: сколько читатель ждет освобождения замка в очереди
         waitTimer.Start();
-        AcquireSRWLockShared(&arr->lock); // СОВМЕСТНЫЙ ЗАХВАТ
+        AcquireSRWLockShared(&arr->lock); // совместный захват
         waitTimer.Stop();
 
         // фиксируем задержку ожидания

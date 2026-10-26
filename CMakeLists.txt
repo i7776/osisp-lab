@@ -9,6 +9,8 @@ add_compile_definitions(UNICODE _UNICODE)
 add_executable(Lab_ReadersWriters
         main.cpp
         SharedData.h
+        Threads.h
+        Threads.cpp
 )
 
 target_link_libraries(Lab_ReadersWriters PRIVATE kernel32)
