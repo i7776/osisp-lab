@@ -2,6 +2,8 @@
 #include <thread>
 #include <vector>
 #include <string>
+#include <winsock2.h>
+#include <ws2tcpip.h>
 #include <windows.h>
 #include "../common/Protocol.h"
 #include "../common/SocketUtils.h"
