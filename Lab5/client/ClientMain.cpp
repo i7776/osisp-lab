@@ -1,9 +1,14 @@
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <windows.h>
+
 #include <iostream>
 #include <string>
 #include <vector>
 #include <random>
 #include <iomanip>
-#include <windows.h>
+#include <algorithm>
+
 #include "../common/Protocol.h"
 #include "../common/SocketUtils.h"
 
@@ -61,7 +66,7 @@ bool SendAnalysisRequest(SOCKET sock, unsigned int reqId, unsigned int clientId,
     return true;
 }
 
-// эмуляция отправки для проверки устойчивости к частичному tcp recv
+// эмуляция фрагментированной отправки для проверки устойчивости к частичному tcp recv
 bool TestPartialTcpSend(SOCKET sock, unsigned int reqId, unsigned int clientId) {
     std::string text = "TCP fragmentation test string 12345";
     unsigned int payloadLen = static_cast<unsigned int>(text.size());
@@ -83,7 +88,8 @@ bool TestPartialTcpSend(SOCKET sock, unsigned int reqId, unsigned int clientId) 
     // отправляем пакет мелкими порциями по 7 байт с задержкой
     size_t offset = 0;
     while (offset < packet.size()) {
-        size_t chunkSize = min(static_cast<size_t>(7), packet.size() - offset);
+        size_t remaining = packet.size() - offset;
+        size_t chunkSize = (std::min)(static_cast<size_t>(7), remaining);
         send(sock, packet.data() + offset, static_cast<int>(chunkSize), 0);
         offset += chunkSize;
         Sleep(5); // искусственная задержка между фрагментами
@@ -111,7 +117,7 @@ int main(int argc, char* argv[]) {
 
     unsigned short port = DEFAULT_PORT;
     std::string host = DEFAULT_HOST;
-    unsigned int clientId = 72; // идентификатор студента
+    unsigned int clientId = 72;
 
     for (int i = 1; i < argc; ++i) {
         if (std::string(argv[i]) == "--port" && i + 1 < argc) port = static_cast<unsigned short>(std::stoi(argv[++i]));
@@ -147,7 +153,7 @@ int main(int argc, char* argv[]) {
 
     LogClient("CONNECTED successfully");
 
-    // функциональные тесты
+    // функциональные тесты по варианту 15
     std::cout << "\n================= ФУНКЦИОНАЛЬНОЕ ТЕСТИРОВАНИЕ =================\n";
     AnalysisResponsePayload resp{};
     double duration = 0.0;
@@ -165,7 +171,7 @@ int main(int argc, char* argv[]) {
     // тест 1.3: фрагментированный tcp recv
     TestPartialTcpSend(sock, ++reqCounter, clientId);
 
-    // экспериментальное исследование (100, 1000, 10000 байт по 3 запуска)
+    // 2. экспериментальное исследование (100, 1000, 10000 байт по 3 запуска)
     std::cout << "\n================ ЭКСПЕРИМЕНТАЛЬНОЕ ИССЛЕДОВАНИЕ ================\n";
     const unsigned int sizes[] = { 100, 1000, 10000 };
     struct ExperimentRecord {
