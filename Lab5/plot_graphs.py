@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
 
-# экспериментальные данные
+# экспериментальные данные студента масаловой (id = 72)
 sizes = [100, 1000, 10000]
-rtt_ms = [5.5257, 5.1340, 7.1546]
-throughput_kbps = [17.67, 190.22, 1364.95]
+rtt_ms = [4.4623, 4.8551, 5.1099]
+throughput_kbps = [21.88, 201.14, 1911.11]
 
 # настройка стилей графиков
 plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
@@ -15,6 +15,7 @@ plt.title('Зависимость времени обработки запрос
 plt.xlabel('Размер сообщения, байт', fontsize=10)
 plt.ylabel('Время отклика, мс', fontsize=10)
 plt.xscale('log')
+plt.ylim(3.5, 6.0)
 plt.grid(True, linestyle='--', alpha=0.6)
 for x, y in zip(sizes, rtt_ms):
     plt.annotate(f"{y:.2f} мс", (x, y), textcoords="offset points", xytext=(0, 8), ha='center', fontsize=9)
@@ -37,4 +38,4 @@ plt.tight_layout()
 plt.savefig('graph_throughput.png', dpi=300)
 plt.close()
 
-print("Графики успешно сохранены: graph_rtt.png и graph_throughput.png")
+print("Графики успешно обновлены: graph_rtt.png и graph_throughput.png")

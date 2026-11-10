@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
     // тест 1.3: фрагментированный tcp recv
     TestPartialTcpSend(sock, ++reqCounter, clientId);
 
-    // 2. экспериментальное исследование (100, 1000, 10000 байт по 3 запуска)
+    // экспериментальное исследование (100, 1000, 10000 байт по 3 запуска)
     std::cout << "\n================ ЭКСПЕРИМЕНТАЛЬНОЕ ИССЛЕДОВАНИЕ ================\n";
     const unsigned int sizes[] = { 100, 1000, 10000 };
     struct ExperimentRecord {
