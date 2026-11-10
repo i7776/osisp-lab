@@ -1,0 +1,9 @@
+cmake-build-*/
+.idea/
+~$*
+build/
+*.exe
+*.obj
+*.o
+*.tmp
+temp_test_*
